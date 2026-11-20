@@ -1,6 +1,6 @@
 # myprivate.network
 
-Personal research homepage and blog. Static HTML and CSS in `public/`, served by Cloudflare Pages (project `myprivatenetwork`).
+Personal research homepage and blog. Static HTML and CSS in `public/`, served by Cloudflare Pages (project `myprivate-network`, connected to this repository).
 
 ```sh
 npm ci
@@ -8,7 +8,7 @@ npm run dev              # local preview
 node scripts/check.mjs   # link / title / CSP check
 ```
 
-Deploys run from GitHub Actions (`.github/workflows/deploy.yml`): pushes to `main` go to production, pull requests get a preview URL. See `AGENTS.md` for how changes are made.
+Cloudflare Pages deploys every push: `main` goes to production, other branches get a preview URL. GitHub Actions only runs the check. See `AGENTS.md` for how changes are made.
 
 ## PGP and security.txt
 

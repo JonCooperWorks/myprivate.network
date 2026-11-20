@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "wrangler pages dev public",
-    "deploy": "wrangler pages deploy public --project-name=myprivatenetwork --branch=main"
+    "deploy": "wrangler pages deploy public --project-name=myprivate-network --branch=main"
   },
   "devDependencies": {
     "wrangler": "^4.149.0"
