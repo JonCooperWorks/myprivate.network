@@ -38,9 +38,11 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
         run: |
+          set -o pipefail
           npx wrangler pages deploy public --project-name=myprivatenetwork \
             --branch="$BRANCH" --commit-hash="$GITHUB_SHA" --commit-dirty=true | tee deploy.log
           url=$(grep -Eo 'https://[a-z0-9.-]+\.pages\.dev' deploy.log | tail -1)
+          test -n "$url"
           echo "Deployed \`$BRANCH\` to $url" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify production
