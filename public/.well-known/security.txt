@@ -1,0 +1,17 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Contact: mailto:hello@joncooperworks.com
+Encryption: https://myprivate.network/pgp.asc
+Expires: 2027-10-01T00:00:00Z
+Canonical: https://myprivate.network/.well-known/security.txt
+Canonical: https://myprivate.network/security.txt
+Preferred-Languages: en
+-----BEGIN PGP SIGNATURE-----
+
+iJEEARYKADkWIQS8YFBy+hTWM7ykQcTWBKRctuUzVgUCasvNdxsUgAAAAAAEAA5t
+YW51MiwyLjUrMS4xMiwwLDMACgkQ1gSkXLblM1ZTWwD+NRhRmmtja00t8gD9dBYB
+WRGh+YspgKKpubQdn9yuIo0A/0akcO9DWDL8jhZ7+oEPR3P7bc+IJZrqQ8/CJpC1
+2EkM
+=399q
+-----END PGP SIGNATURE-----

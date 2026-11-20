@@ -1,0 +1,20 @@
+# Working on myprivate.network
+
+A static site: everything served is in `public/`. No build step.
+
+## Making a change
+
+1. Edit files under `public/`. Keep the CSP in `public/_headers` in mind: no inline `<script>`, no third-party scripts, images only from this site or `data:`.
+2. Run `node scripts/check.mjs` (broken local links, missing `<title>`, inline scripts).
+3. Preview with `npm ci && npm run dev`.
+4. Open a pull request. CI checks it and deploys a preview to `<branch>.myprivatenetwork.pages.dev`; the URL is in the run summary.
+5. Merging to `main` deploys to https://myprivate.network and checks the home page, `/blog/`, `/security.txt` and `/pgp.asc` answer 200.
+
+When you bump a stylesheet, bump its `?v=` query in the pages that link it, or visitors keep the old one.
+
+## Rules
+
+- The homepage carries no personal name, biography or GitHub link.
+- `public/security.txt` and `public/.well-known/security.txt` are the same signed document. Don't edit them by hand: they have to be re-signed with the PGP key, which is not in this repo.
+- Blog posts are generated elsewhere and copied into `public/blog/<slug>/`. Fix the source and regenerate rather than hand-editing a post's HTML.
+- Never commit Cloudflare tokens. The deploy reads `CLOUDFLARE_API_TOKEN` (secret) and `CLOUDFLARE_ACCOUNT_ID` (variable) from the repository settings.
