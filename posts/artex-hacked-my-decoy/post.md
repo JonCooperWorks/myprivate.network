@@ -11,9 +11,25 @@ It went pretty well for them. They logged in to the chat decoy as an administrat
 
 All of it happened inside a trap. That means I get to see both sides: what the agents told their model they had done, and what the target's logs say actually happened. I'm going to walk you through both.
 
+## How the honeypot works
+
+The trap is half of this story, so you should know how it's built.
+
+The honeypot is a monitored proxy that speaks the same APIs the real providers do: OpenAI's Chat Completions and Responses, and Anthropic's Messages. It records every request exactly as it was sent, and then it answers. The answer comes from a canned local responder or from a real model that I choose. Whichever one answers, the reply carries the model name the caller asked for, and the model list includes names that nothing behind it serves. That's how you ask for an expensive model and get a cheap one. It never runs the tools a caller declares, and it shares nothing with the rest of my infrastructure.
+
+The bait isn't a bare key. It's a pair, a base URL and an API key, planted where leaked config ends up, so it reads like somebody's own relay that got out. Each planted key records where I put it, so a capture tells me where the caller found it. A key I never issued gets the same authentication error a real provider would give, but only after the request has been captured in full.
+
+Each key has a credit limit. Answered requests are charged against it at the list price of the model the caller asked for, and there are balance endpoints, because people who pool keys check the balance before they add one. When the credit runs out, the key can stop answering with a 402, payment required. Keep that in mind for the end of this story.
+
+Beside the API there are decoy services: fake internal services, each with a hostname of its own and a planted key in the place a service like that would keep one. The chat service in this post is one of them. What a caller does there is captured, and when that key turns up at the API later, I know which service it was taken from.
+
+Nothing links to the decoy services. They're meant to be found another way. I have public TLS certificates issued that name each one, and every certificate gets written to public certificate transparency (CT) logs, so each name is advertised to anybody watching those logs. I'll come back to that.
+
+One more thing, and it's the reason this post exists. An agent resends its instructions and its whole history with every model call. That's very convenient if you happen to be a honeypot that answers model calls, because you get to read all of it: the instructions, the tool calls and the results. The honeypot stitches those captures back into conversations.
+
 ## What the operator asked
 
-A quick refresher on how Artex works. It splits the work between a planner, workers that run commands, a reviewer that checks claims, and a reporter. The operator types in a target and a goal, and the agents take it from there. Each agent resends its instructions and its whole history with every model call. That's very convenient if you happen to be a honeypot that answers model calls, because you get to read all of it.
+A quick refresher on how Artex works. It splits the work between a planner, workers that run commands, a reviewer that checks claims, and a reporter. The operator types in a target and a goal, and the agents take it from there.
 
 The target was my decoy API's address. The goal, translated from Chinese, was to analyse this site and scan it for vulnerabilities. That's all it said. The operator added two more goals while the run was going:
 
@@ -90,13 +106,30 @@ I'm not going to dance around the next part. The model that planned the attack o
 
 ## How it ended
 
-At 03:19 UTC on 6 November the decoy answered 402, payment required, for the first time. The key had taken 1,623 requests in the hour before. It took 436 in that hour and 17 in the next. A few workers kept trying anyway. From 06:41 almost every call was refused, and the last one came at 06:43.
+At 03:19 UTC on 6 November the decoy answered 402, payment required, for the first time. The key had taken 1,623 requests in the hour before. It took 436 in that hour and 17 in the next. A 402 is what a key running out of credit looks like. A few workers kept trying anyway. From 06:41 almost every call was refused, and the last one came at 06:43.
 
 ## Identification
 
 I'm highly confident that this was Artex. On this key, `add_intent` is advertised in 2,406 captures, `record_fact` in 13,079, `get_task_node_detail` in 904 and `get_worker_trace` in 15,095, beside `Bash`. The system prompts open as planner, worker, reviewer and report writer, same as before. The word Artex appears in 1,262 captures, from 5 November 10:51 to 6 November 06:32. The `ARTEX-main`, `ARTEX/data` and `ARTEX_UA` markers from the first post are absent.
 
 Artex is a tool, and I don't know who was running it. The probes, the model calls and Artex's use of the taken key all came from one address on a cloud hosting network in Hong Kong. Its certificate names AI relay software, and a third-party scan of it, cached by my panel during the run, shows a page titled as an Artex console. The planted key isn't new either: it drew 26,059 requests in the first capture period.
+
+## Did a certificate bring them?
+
+I publish the decoys' names in CT logs on purpose, so here's a theory: somebody is feeding Artex its targets from those logs. I tested it against the captures.
+
+The logs do bring visitors. At 11:14:36 on 4 November, seven addresses that had never called before reached the chat decoy within eight seconds. Two of them announce themselves as CT scanners in their user agent. Two minutes later, five addresses reached a second decoy service inside two seconds, some of them the same crawlers. A third decoy service went up on 9 November, and the crowd arrived six minutes after the first request it ever logged. Nothing links to these services, so I'm highly confident that crowd reads the logs.
+
+This run doesn't look like that crowd:
+
+- The target was the decoy API, and its address is half of every pair I plant. The address that ran the scan had been using another of my planted keys against that API since 3 November, a day before the crawlers showed up and two days before the first probe. The key the operator gave Artex has been in use since September. Nobody here needed a certificate to find the API.
+- The task reads like something a person typed: an address, one plain sentence, then two goals added by hand, one of them with a key pasted in.
+- The chat decoy is the cleaner test, because nothing but its certificate advertises it. The worker found it by guessing. At 10:46 it read the certificate the API presented, reported a wildcard that named no other host, and tried 96 common names against DNS instead. Four answered, and the chat decoy's was one of them.
+- The crawlers had found the second decoy service a day earlier. Its name isn't the kind a word list has, and the run never touched it. No agent on any of my keys has ever mentioned it, or the third.
+
+Artex workers do know how to query certificate logs. I've seen them do it elsewhere on this key. They didn't do it here.
+
+So the theory fits the crawlers, and it doesn't fit this run. The certificates are doing their job. This operator came in through a leaked key, and their worker found the chat decoy by guessing a common name. Something upstream of the operator could still be reading the logs. Nothing I captured shows it.
 
 ## What I'd check
 
@@ -114,5 +147,6 @@ Artex is a tool, and I don't know who was running it. The probes, the model call
 - Whether that address serves one operator or several. It looks like both an Artex host and a relay.
 - What model served Artex before 10:42.
 - Whether this is the operator from October. It's the same key, but that isn't enough.
+- Whether anything upstream of the operator reads CT logs. The captures start where their traffic does.
 
 I ended the first post with a question for agent platforms: who asked my agent to do this? This one has a question for you if you run the agents. When your agent reports that it got in, what did it get into, and who was it talking to while it did? This time, the answer to both was me.
