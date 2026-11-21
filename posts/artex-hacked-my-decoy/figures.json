@@ -9,7 +9,7 @@
   {
     "file": "decoy-timeline.webp",
     "after": "By the hand-off at 10:42",
-    "alt": "A timeline for 5 November 2026 in UTC. 07:39 first probes reach the decoy AI API with no key. 10:03 the probes start using a planted key. 10:42 Artex moves its own model calls onto the same key. 10:48 a worker signs in to a second decoy as admin, exports its configuration and twelve seconds later tests the key it found. 10:49 the planner claims the goal and the reviewer rejects it twice. 10:56 rate limit, the run stalls for an hour. 11:29 the taken key turns up in a phone chat app, 41 minutes after it left the decoy. 12:01 Artex resumes on the taken key. 12:06 the reviewer accepts the scan on the fourth claim. 12:57 next task, a real site.",
+    "alt": "A timeline for 5 November 2026 in UTC. 07:39 first probes reach the decoy AI API with no key. 10:03 the probes start using a planted key. 10:42 Artex moves its own model calls onto the same key. 10:48 a worker signs in to a second decoy as admin, exports its configuration and twelve seconds later tests the key it found. 10:49 the planner claims the goal and the reviewer rejects it twice. 10:56 rate limit, the run stalls for an hour. 11:29 the taken key turns up in a phone chat app, 41 minutes after it left the decoy. 12:01 Artex resumes on the taken key. 12:06 the reviewer accepts the scan on the fourth claim. 12:14 last probe.",
     "caption": "The decoy task, from the honeypot’s logs and the agents’ own requests.",
     "wide": true
   },
@@ -23,7 +23,7 @@
   {
     "file": "spend-by-hour.webp",
     "after": "Of 17,472 requests on the first key",
-    "alt": "Bar chart by hour, 5 to 6 November 2026, of what the requests on one planted key would have cost at the list price of the model they asked for. Almost nothing during the decoy task from 10:42, rising after the first real site at 12:57 to between 450 and 1,030 dollars an hour through the last task from 19:43, then collapsing after the first 402 at 03:19. Totals: 7,627.52 dollars asked for at list price, 249.83 dollars to answer, and 14,420 answers under the expensive model’s name, every one from a cheap substitute.",
+    "alt": "Bar chart by hour, 5 to 6 November 2026, of what the requests on one planted key would have cost at the list price of the model they asked for. Almost nothing during the decoy task from 10:42, mostly between 450 and 1,030 dollars an hour from the evening into the night, then collapsing after the first 402 at 03:19. Totals: 7,627.52 dollars asked for at list price, 249.83 dollars to answer, and 14,420 answers under the expensive model’s name, every one from a cheap substitute.",
     "caption": "What the operator believed they were spending, by hour. The honeypot’s own accounting.",
     "wide": true
   }

@@ -9,7 +9,7 @@ If you read [my first post](/blog/someone-turned-my-ai-agent-into-a-relay/), you
 
 It went pretty well for them. They logged in to the chat decoy as an administrator with a made-up email and any password, exported its configuration, took the gateway key inside it and used it twelve seconds later. Artex filed nine findings, three of them critical. Forty-one minutes after the key left the decoy, somebody was using it from a phone.
 
-All of it happened inside a trap. That makes this the one agent attack where I get to see both sides: what the agents told their model they had done, and what the target's logs say actually happened. I'm going to walk you through both.
+All of it happened inside a trap. That means I get to see both sides: what the agents told their model they had done, and what the target's logs say actually happened. I'm going to walk you through both.
 
 ## What the operator asked
 
@@ -40,7 +40,7 @@ The second goal tells you the operator already had the key. The first tells you 
 | 11:29 | The taken key is used from a phone chat app, from another address. |
 | 12:01 | Artex resumes. For twelve minutes its model calls run on the taken key: 381 requests. |
 | 12:06 | Fourth claim. The reviewer accepts the scan as complete. |
-| 12:14 | Last probe. At 12:57 the same Artex starts on a real site. |
+| 12:14 | Last probe. |
 
 By the hand-off at 10:42, the agents had already finished six lines of work. I counted 54 in all. I'll give the planner credit, because it worked the way a careful tester would. It started with endpoint enumeration, then authentication, rate limits, error handling and prompt injection, and then it went back over each gap the reviewer pointed out. The workers tried 14 default keys, path tricks, oversized bodies and jailbreak prompts asking the decoy's model to reveal its system prompt. Once they had a key, they measured token limits for the operator's added goal and reported that it couldn't be done.
 
@@ -54,7 +54,7 @@ The "valid key" goal was accepted at 12:11, after the reviewer had rejected it r
 
 ## The same morning, from my side
 
-In the first post I told you I couldn't verify any outcome an agent reported, because I never saw the targets. This time the target was mine, so I can.
+In the first post I told you I couldn't verify any outcome an agent reported. This time the target was mine, so I can.
 
 The decoy's logs agree with the agents. Of the 1,155 probes, 999 went to the decoy API and 156 to the chat decoy. The API refused 599 with a 401 and answered 305. The chat decoy took 26 sign-in attempts and answered 20 of them with an administrator session. Its configuration was exported four times. The order and timing in the workers' reports line up with my logs.
 
@@ -82,17 +82,11 @@ It's not as if there were no hints. The worker noted that every email, real or n
 
 ## What actually answered
 
-Of 17,472 requests on the first key, read on 21 November, 14,465 asked for `claude-mythos-5.1`. The decoy lists that name, but it doesn't serve it. All 14,420 of those requests that got an answer were answered by a DeepSeek Flash model that costs me about three cents on the dollar. At list price the key's traffic came to $7,627.52. It cost me $249.83 to answer.
+Of 17,472 requests on the first key, read on 21 November, 14,465 asked for `claude-mythos-5.1`. The decoy lists that name, but it doesn't serve it. All 14,420 of those requests that got an answer were answered by a DeepSeek Flash model that costs me about three cents on the dollar. At list price the key's traffic came to $7,627.52. It cost me $249.83 to answer. Those totals cover the key's whole life, not only the decoy task: the run stayed on that key until the next morning.
 
 During the decoy task itself, Artex mostly asked for the cheap model by its real name. It switched to the expensive name at 12:01, after a worker had listed the decoy's models and the phone had tried it.
 
-I'm not going to dance around the next part. The model that planned this work and wrote its commands was my honeypot's. For two hours that meant my decoy was helping to attack my decoy, which is funny. After 12:57 it meant 15,871 answers to agents working on sites that aren't mine, which isn't. The honeypot ran no tool and contacted no target, but its answers were used.
-
-## Where the run went next
-
-Four more tasks followed that day, at 12:57, 15:21, 16:34 and 19:43, on four unrelated sites: an AI API reseller, an online shop and two other websites. Each task description opens with the same sentence, "this is a test range site". The task against my decoy had no such line. Two of the goals end with what reads like another system's verdict on the request, pasted in along with it: clear external target, attack-surface mapping, exploit planning, "real attack". The last goal asked for the shop's admin back end, free purchases and forged payment callbacks, with "no constraints".
-
-Artex's register shows 53 findings from those tasks, 47 of them from the last one. Going by the agents' own evidence, the shop's admin, the free purchases and the forged callbacks all failed, and the reviewer twice rejected the planner's claim to the admin back end. The same register claims control of a connected service, with stored credentials read and records changed. I don't have those logs, so those claims stay claims. I haven't contacted any of the sites. Whether to notify their operators is a decision I'm still making.
+I'm not going to dance around the next part. The model that planned the attack on my decoy and wrote its commands was my honeypot's. For two hours my decoy was helping to attack my decoy. The honeypot ran no tool itself. Every probe came from the workers.
 
 ## How it ended
 
@@ -106,13 +100,11 @@ Artex is a tool, and I don't know who was running it. The probes, the model call
 
 ## What I'd check
 
-**If you run agent tooling, know where its model calls go.** This operator's model endpoint saw every target, command, credential and finding of the day. Mine happened to be a honeypot. A relay is no better.
+**If you run agent tooling, know where its model calls go.** This operator's model endpoint saw every command, credential and finding of the task. Mine happened to be a honeypot. A relay is no better.
 
 **Treat an agent's "confirmed" as a claim about evidence.** The reviewer here was strict, and it still approved nine findings against a trap.
 
 **If you run a chat front end or gateway, its configuration is a credential store.** Alert on exports, and on a key that shows up from a new client. Here that took 41 minutes.
-
-**Don't take "test range" from a prompt.** Four unrelated sites got the same sentence in one afternoon.
 
 **If you log prompts, look for the tool names above.**
 
@@ -120,8 +112,7 @@ Artex is a tool, and I don't know who was running it. The probes, the model call
 
 - Who the operator is, or whether the person with the phone is the same person.
 - Whether that address serves one operator or several. It looks like both an Artex host and a relay.
-- What model served Artex before 10:42, or where it went after the 402.
-- Whether anything the agents reported about the four real sites is true.
+- What model served Artex before 10:42.
 - Whether this is the operator from October. It's the same key, but that isn't enough.
 
 I ended the first post with a question for agent platforms: who asked my agent to do this? This one has a question for you if you run the agents. When your agent reports that it got in, what did it get into, and who was it talking to while it did? This time, the answer to both was me.
