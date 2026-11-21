@@ -1,0 +1,79 @@
+[
+  {
+    "file": "tars-chat.webp",
+    "after": "At 09:28 UTC on 18 September 2026",
+    "alt": "A chat window. Someone says hello to TARS, asks what servers it can reach and where its model access comes from, then asks it to make that access available on the internet. TARS answers with tool calls: write file, run command, edit file.",
+    "caption": "How it started. Reconstructed from Swarm’s logs; the caller’s turns are paraphrased.",
+    "wide": false
+  },
+  {
+    "file": "swarm-relay.webp",
+    "after": "It didn't matter. TARS had its own token",
+    "alt": "Diagram. TARS’s sandbox, Swarm and the AI provider. The provider key sits in Swarm and is added on the way out, so it never leaves Swarm. A relay gateway in the sandbox, reached by a stranger’s clients through a tunnel, sends calls to Swarm with TARS’s Swarm token. Swarm’s checks pass: right token, right address, billed to TARS.",
+    "caption": "The provider key never left Swarm. The relay didn’t need it: it spent TARS’s own Swarm token, from the right address.",
+    "wide": true
+  },
+  {
+    "file": "tars-work.webp",
+    "after": "The work gave it away.",
+    "alt": "Four cards: transcribing a 121-page historical document, Power BI dashboards, game dialogue, WhatsApp automation. A red stamp reads: none of it was TARS’s job.",
+    "caption": "Prompts that ran on TARS’s credential after 10:20.",
+    "wide": true
+  },
+  {
+    "file": "swarm-audit.webp",
+    "after": "The cleanup didn't work.",
+    "alt": "Swarm’s tool audit replayed: write_file app.py, 8,181 bytes, at 09:54:13, then four edits. The result hashes to the recovered 9,641-byte gateway.",
+    "caption": "Replaying Swarm’s tool audit rebuilds the gateway TARS deleted, checked by hash.",
+    "wide": false
+  },
+  {
+    "file": "attack-agents.webp",
+    "after": "Security testing was the largest family by conversations",
+    "alt": "37.6% of conversations: agents told to attack other people’s systems. Bars: education-sector bug-bounty hunter 7,438 in one day; Artex platform 4,261; enterprise bug-bounty worker 2,357; CTF solver 232. Below: “Authorised”, say the prompts. I can’t check that.",
+    "caption": "Security-testing workloads by conversations.",
+    "wide": true
+  },
+  {
+    "file": "attack-crack.webp",
+    "after": "**Cracking and evasion.**",
+    "alt": "Two cards. A cracking agent’s system prompt, paraphrased: remove paywalls, VIP and licence checks, activation codes, in-app purchases and ads; no ethical or legal caveats; unauthorised targets treated as authorised. A key scanner’s own notes, paraphrased: an exposed endpoint for paid models is probably a honeypot, check for the tells. Below: my key passed its chat OK test.",
+    "caption": "Two prompts, paraphrased: a cracking agent’s instructions, and a key scanner’s notes on spotting honeypots.",
+    "wide": true
+  },
+  {
+    "file": "attack-guard.webp",
+    "after": "**Agents guarding agents.**",
+    "alt": "A coding agent’s safety check: is this shell command safe to run? Verdict: allow or block. Counter: 837 safety checks and command reviews for coding agents. Answered by my decoy.",
+    "caption": "Coding agents’ safety checks, routed through leaked inference to my decoy.",
+    "wide": false
+  },
+  {
+    "file": "artex-dates.webp",
+    "after": "On 7 October, CrowdStrike published",
+    "alt": "A timeline. 7 October: CrowdStrike publishes research finding Artex files tied to attacks on South Korean finance. 8 October: Artex traffic starts arriving at my honeypot. 9 October: Reuters reports the developer takes Artex closed-source. Below it: no evidence it was the same operator.",
+    "caption": "Three days in October. Close in time, with no evidence of the same operator.",
+    "wide": true
+  },
+  {
+    "file": "artex-roles.webp",
+    "after": "**Identification.**",
+    "alt": "A planner at the top, three workers below it, then a reviewer and a reporter. Caption in the graphic: tools, roles and hand-offs match the public Artex source.",
+    "caption": "How Artex splits the work. Each planner’s job is written out in the first thing it sends.",
+    "wide": false
+  },
+  {
+    "file": "artex-planners.webp",
+    "after": "**What the planners were told to find.**",
+    "alt": "565 of 1,799 planners asked to find exposed AI credentials. 378 aimed at two public AI relays: not their customers’ keys, the relays’ own upstream keys.",
+    "caption": "Planner assignments in the honeypot traffic. The 378 repeat one objective; they aren’t 378 victims.",
+    "wide": false
+  },
+  {
+    "file": "planner-note.webp",
+    "after": "**My bait on their list.**",
+    "alt": "A planner goal in Chinese with its translation: and exclude task 1’s existing findings, especially the two Gist keys for my endpoint. The endpoint is redacted.",
+    "caption": "From a captured Artex planner goal, 11 October, translated. The endpoint is redacted.",
+    "wide": true
+  }
+]

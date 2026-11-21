@@ -1,10 +1,11 @@
 # myprivate.network
 
-Personal research homepage and blog. Static HTML and CSS in `public/`, served by Cloudflare Pages (project `myprivate-network`, connected to this repository).
+Personal research homepage and blog. Static HTML and CSS in `public/` (the blog pages are built from `posts/`), served by Cloudflare Pages (project `myprivate-network`, connected to this repository).
 
 ```sh
 npm ci
 npm run dev              # local preview
+python3 scripts/build_blog.py   # rebuild public/blog/ from posts/
 node scripts/check.mjs   # link / title / CSP check
 ```
 
