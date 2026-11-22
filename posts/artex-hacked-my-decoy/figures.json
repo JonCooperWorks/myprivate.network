@@ -2,29 +2,29 @@
   {
     "file": "both-ends.webp",
     "after": "All of it happened inside a trap.",
-    "alt": "Diagram. On the left, someone's Artex: planner, reviewer, reporter and workers. On the right, my honeypot: the model behind the decoy AI API, the decoy AI API and a decoy chat service. One arrow carries the agents' model calls to the honeypot with a planted key; one carries plans, commands, findings and verdicts back; a third carries 1,155 probes, sign-ins and exports from the workers to the two decoys. All three streams share one source address. Below: the target of the attack and the model planning it were the same honeypot.",
-    "caption": "The honeypot was on both ends: the target of the probes, and the model the agents asked what to do next.",
+    "alt": "Diagram. On the left, a box labelled Someone's Artex (a stranger's, not mine): planner, reviewer, reporter and workers. On the right, my honeypot: the model behind the decoy AI API, the decoy AI API and a decoy chat service. One arrow carries the agents' model calls to the honeypot with a planted key; one carries plans, commands, findings and verdicts back; a third carries 1,155 probes, sign-ins and exports from the workers to the two decoys. All three streams share one source address. Below: the target of the attack and the model planning it were the same honeypot.",
+    "caption": "The honeypot was on both ends: the target of the probes, and the model the agents asked what to do next. The Artex on the left is a stranger's. Only the right-hand side is mine.",
     "wide": true
   },
   {
     "file": "decoy-timeline.webp",
     "after": "By the hand-off at 10:42",
-    "alt": "A timeline for 5 November 2026 in UTC. 07:39 first probes reach the decoy AI API with no key. 10:03 the probes start using a planted key. 10:42 Artex moves its own model calls onto the same key. 10:48 a worker signs in to a second decoy as admin, exports its configuration and twelve seconds later tests the key it found. 10:49 the planner claims the goal and the reviewer rejects it twice. 10:56 rate limit, the run stalls for an hour. 11:29 the taken key turns up in a phone chat app, 41 minutes after it left the decoy. 12:01 Artex resumes on the taken key. 12:06 the reviewer accepts the scan on the fourth claim. 12:14 last probe.",
-    "caption": "The decoy task, from the honeypot’s logs and the agents’ own requests.",
+    "alt": "A timeline for 5 November 2026 in UTC, of a stranger's Artex run against my decoys. 07:39 first probes reach the decoy AI API with no key. 10:03 the probes start using a planted key. 10:42 Artex moves its own model calls onto the same key. 10:48 a worker signs in to a second decoy as admin, exports its configuration and twelve seconds later tests the key it found. 10:49 the planner claims the goal and the reviewer rejects it twice. 10:56 rate limit, the run stalls for an hour. 11:29 the taken key turns up in a phone chat app, 41 minutes after it left the decoy. 12:01 Artex resumes on the taken key. 12:06 the reviewer accepts the scan on the fourth claim. 12:14 last probe.",
+    "caption": "The decoy task, from the honeypot’s logs and the agents’ own requests. The agents were a stranger’s; the logs are mine.",
     "wide": true
   },
   {
     "file": "worker-log.webp",
-    "after": "The decoy's logs agree with the agents.",
-    "alt": "A terminal-style log. 10:48:13 sign in with a made-up email and any password: 200, role admin. 10:48:28 export the service’s configuration: 200, gateway key inside. 10:48:40 call the AI gateway with that key: 200, ok. 10:48:42 report finding, authentication bypass, severity critical. 10:54:55 create a second admin account: 200. 10:55:43 delete it again: 200. Verdict from Artex’s reviewer at 10:49: not the target, rejected. Below: each command was written by the decoy’s own model, and each result is in the decoy’s own log.",
-    "caption": "The worker’s minute on the chat decoy. Reconstructed from logs and paraphrased; hostnames, paths and the key are left out.",
+    "after": "In the first post I couldn't verify",
+    "alt": "A terminal-style log of what a stranger's Artex worker did to my chat decoy. 10:48:13 sign in with a made-up email and any password: 200, role admin. 10:48:28 export the service’s configuration: 200, gateway key inside. 10:48:40 call the AI gateway with that key: 200, ok. 10:48:42 report finding, authentication bypass, severity critical. 10:54:55 create a second admin account: 200. 10:55:43 delete it again: 200. Verdict from Artex’s reviewer at 10:49: not the target, rejected. Below: each command was written by the decoy’s own model, and each result is in the decoy’s own log.",
+    "caption": "A stranger’s Artex worker, one minute on my chat decoy. Reconstructed from logs and paraphrased; hostnames, paths and the key are left out.",
     "wide": true
   },
   {
     "file": "spend-by-hour.webp",
     "after": "Of 17,472 requests on the first key",
     "alt": "Bar chart by hour, 5 to 6 November 2026, of what the requests on one planted key would have cost at the list price of the model they asked for. Almost nothing during the decoy task from 10:42, mostly between 450 and 1,030 dollars an hour from the evening into the night, then collapsing after the first 402 at 03:19. Totals: 7,627.52 dollars asked for at list price, 249.83 dollars to answer, and 14,420 answers under the expensive model’s name, every one from a cheap substitute.",
-    "caption": "What the operator believed they were spending, by hour. The honeypot’s own accounting.",
+    "caption": "What the operator, who was not me, believed they were spending, by hour. The honeypot’s own accounting.",
     "wide": true
   }
 ]
