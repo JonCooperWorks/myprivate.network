@@ -202,6 +202,10 @@ All of the Artex traffic came from one address. Between 3 and 6 November it sent
 | `Go-http-client/2.0` carrying every Artex model call | HTTP | 2026-11-03 | 2026-11-06 | Model calls forwarded by relay software |
 | `curl/7.88.1` probes from the same address as the model calls | HTTP | 2026-11-05 07:39 | 2026-11-05 12:14 | Artex workers |
 
+## The traces
+
+The traces from this run are public, in a Hugging Face bucket: [artex-decoy-attack-traces](https://huggingface.co/buckets/joncooperworks/artex-decoy-attack-traces). It holds the 260 conversations captured from the scan address between 07:39 and 12:15 UTC on 5 November, Artex's own model calls and the workers' requests to the decoy API, plus an index of all 2,108 requests the address sent in that window. The same Artex instance ran four more tasks later that day, against other people's sites. Those aren't in it. Keys, tokens, the decoys' hostnames and my server's address are redacted. It's attacker-written text, prompt injections included, so don't hand it to an agent that can act.
+
 ## What I can't tell you
 
 - Who the operator is.
