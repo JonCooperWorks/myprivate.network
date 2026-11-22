@@ -79,7 +79,7 @@ A person was right behind the worker. At 10:49:12, thirty seconds after the find
 
 At 11:29:34, forty-one minutes after the export, an Android chat app at the phone browser's address checked the taken key's balance. At 11:42 it started chatting on that key and asked for `claude-mythos-5.1`. Whoever was typing wanted to know whether the context was a million tokens, why it was only 200K, and how to set it to a million. That's the goal the operator had added to Artex at 10:45.
 
-At 12:01, with the first key rate-limited, Artex moved its own model calls onto the taken key and finished the task there. The key has been tried on and off since, from a dozen more addresses, most recently on 21 November.
+At 12:01, with the first key rate-limited, Artex moved its own model calls onto the taken key and finished the task there. The key has been tried on and off since, from eleven other addresses, most recently on 21 November.
 
 A scanner that reports a leaked key and stops is a test. This key was in somebody's phone before the reviewer had accepted the finding about it.
 
@@ -101,6 +101,8 @@ Of 17,472 requests on the first key between 1 and 21 November, 14,465 asked for 
 
 The agents were a stranger's. The model that planned their attack on my decoy and wrote its commands was my honeypot's. The honeypot ran no tool itself. Every probe came from the workers.
 
+That's the business here. This operator runs an attack platform on inference taken from other people's leaked keys, and points it at people online. On 5 November the leaked key was my bait and the target was my decoy, which is the only reason I can show you any of it.
+
 ## How it ended
 
 At 03:19 UTC on 6 November the decoy answered 402, payment required, for the first time. The key had taken 1,623 requests in the hour before. It took 436 in that hour and 17 in the next. A 402 is what a key running out of credit looks like. From 06:41 almost every call was refused, and the last one came at 06:43.
@@ -109,7 +111,7 @@ At 03:19 UTC on 6 November the decoy answered 402, payment required, for the fir
 
 I'm highly confident that this was Artex. On this key, `add_intent` is advertised in 2,406 captures, `record_fact` in 13,079, `get_task_node_detail` in 904 and `get_worker_trace` in 15,095, beside `Bash`. The system prompts open as planner, worker, reviewer and report writer, same as before. The word Artex appears in 1,262 captures, from 5 November 10:51 to 6 November 06:32.
 
-That identifies the software, not the operator. The probes, the model calls and Artex's use of the taken key all came from one address on a cloud hosting network in Hong Kong. Its certificate names AI relay software, and a third-party scan of it, cached by my panel during the run, shows a page titled as an Artex console.
+That identifies the software, not the operator. The probes, the model calls and Artex's use of the taken key all came from one address on a cloud hosting network in Hong Kong, listed under Indicators. Its certificate names AI relay software, and a third-party scan of it, cached by my panel during the run, shows a page titled as an Artex console.
 
 ## What I think happened
 
@@ -186,7 +188,19 @@ I think they were using my API for free and sent their agents to get more of it:
 - Know where your agent tooling sends its model calls. This operator's model endpoint saw every command, credential and finding of the task.
 - Treat an agent's "confirmed" as a claim about evidence. A strict reviewer approved nine findings against a trap.
 - A chat front end's configuration is a credential store. Alert on exports, on settings opened from a new address, and on a key that shows up in a new client.
-- If you log prompts, look for the tool names above.
+- If you log prompts, look for the tool names below.
+
+## Indicators
+
+All of the Artex traffic came from one address. Between 3 and 6 November it sent my honeypot 18,065 requests: 16,910 model calls and the 1,155 probes.
+
+| Indicator | Type | First seen (UTC) | Last seen (UTC) | Context |
+|---|---|---|---|---|
+| `162.251.92.36` (AS154321, Hong Kong) | Source address | 2026-11-03 10:52 | 2026-11-06 06:43 | Artex probes and Artex model calls on three planted keys |
+| `add_intent`, `record_fact`, `get_task_node_detail`, `get_worker_trace` advertised beside `Bash` | Prompt content | 2026-11-03 | 2026-11-06 | Artex platform |
+| System prompts opening as planner, worker, reviewer or report writer, without the `ARTEX-main`, `ARTEX/data` or `ARTEX_UA` markers | Prompt content | 2026-11-05 | 2026-11-06 | Artex, a different build or install from October's |
+| `Go-http-client/2.0` carrying every Artex model call | HTTP | 2026-11-03 | 2026-11-06 | Model calls forwarded by relay software |
+| `curl/7.88.1` probes from the same address as the model calls | HTTP | 2026-11-05 07:39 | 2026-11-05 12:14 | Artex workers |
 
 ## What I can't tell you
 
