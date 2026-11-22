@@ -24,7 +24,7 @@
     "file": "spend-by-hour.webp",
     "after": "Of 17,472 requests on the first key",
     "alt": "Bar chart by hour, 5 to 6 November 2026, of what the requests on one planted key would have cost at the list price of the model they asked for. Almost nothing during the decoy task from 10:42, mostly between 450 and 1,030 dollars an hour from the evening into the night, then collapsing after the first 402 at 03:19. Totals: 7,627.52 dollars asked for at list price, 249.83 dollars to answer, and 14,420 answers under the expensive model’s name, every one from a cheap substitute.",
-    "caption": "What the operator, who was not me, believed they were spending, by hour. The honeypot’s own accounting.",
+    "caption": "What the operator believed they were spending, by hour. The honeypot’s own accounting.",
     "wide": true
   }
 ]
