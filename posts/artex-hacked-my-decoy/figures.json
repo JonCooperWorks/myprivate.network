@@ -3,7 +3,7 @@
     "file": "both-ends.webp",
     "after": "All of it happened inside a trap.",
     "alt": "Diagram. On the left, a box labelled Someone's Artex (a stranger's, not mine): planner, reviewer, reporter and workers. On the right, my honeypot: the model behind the decoy AI API, the decoy AI API and a decoy chat service. One arrow carries the agents' model calls to the honeypot with a planted key; one carries plans, commands, findings and verdicts back; a third carries 1,155 probes, sign-ins and exports from the workers to the two decoys. All three streams share one source address. Below: the target of the attack and the model planning it were the same honeypot.",
-    "caption": "The honeypot was on both ends: the target of the probes, and the model the agents asked what to do next. The Artex on the left is a stranger's. Only the right-hand side is mine.",
+    "caption": "The honeypot was on both sides: the target of the probes, and the model the agents asked what to do next. The Artex on the left is a stranger's. Only the right-hand side is mine.",
     "wide": true
   },
   {

@@ -1,9 +1,9 @@
 ---
 date: 2026-11-22
-summary: A stranger pointed Artex, an AI penetration-testing platform, at my decoy AI API. I didn't run it; I found it in my logs afterwards. Its agents broke into a second decoy and took a key, and the decoy's own model wrote every plan, command and verdict along the way. For once I could check an agent's findings against the target's logs.
+summary: A stranger pointed Artex, an AI penetration-testing platform, at my decoy AI API, and ran its agents on a key I had planted. I didn't run it; I found it in my logs afterwards. So I have both sides of one attack: what the agents told their model they did, and what the target's logs say happened.
 ---
 
-# Artex hacked my decoy. My decoy wrote the commands.
+# Both sides of an Artex attack
 
 If you read [my first post](/blog/someone-turned-my-ai-agent-into-a-relay/), you'll remember Artex, the AI penetration-testing platform that kept turning up in my honeypot. On 5 November 2026, a stranger pointed it at me. Between 07:39 and 12:14 UTC, one address sent 1,155 probes to two of my decoys: a decoy AI API and a decoy chat service. From 10:42, Artex was also sending its own model calls to that same decoy API, on a key I had planted. So a stranger's agents were attacking my honeypot and asking my honeypot what to do next.
 
@@ -11,7 +11,7 @@ I didn't run it, and I don't know who did. I found it in my logs afterwards. The
 
 It went pretty well for them. They logged in to the chat decoy as an administrator with a made-up email and any password, exported its configuration, took the gateway key inside it and used it twelve seconds later. Artex filed nine findings, three of them critical. Thirty seconds after the first critical one was filed, a person opened the chat decoy in a phone browser and walked in behind the agent. Forty-one minutes after the key left the decoy, it was in a phone chat app.
 
-All of it happened inside a trap. That means I get to see both sides: what the agents told their model they had done, and what the target's logs say actually happened.
+All of it happened inside a trap. So I have both sides of the same attack: what the agents told their model they had done, and what the target's logs say actually happened.
 
 ## How the honeypot works
 
@@ -21,7 +21,7 @@ The bait is a pair, a base URL and an API key, planted where leaked config ends 
 
 Beside the API there are decoy services: fake internal services, each with its own hostname and a planted key where a service like that would keep one. The chat service in this post is one of them. Nothing links to them, but each has a public TLS certificate, and every certificate is written to public certificate transparency (CT) logs, where anybody can read its name. I'll come back to that.
 
-The reason this post exists: an agent resends its instructions and its whole history with every model call. A honeypot that answers model calls gets to read all of it, and mine stitches those captures back into conversations.
+That's the target's side. The attacker's side comes from how agents work: an agent resends its instructions and its whole history with every model call. A honeypot that answers model calls gets to read all of it, and mine stitches those captures back into conversations.
 
 ## What the operator asked
 
@@ -57,7 +57,7 @@ The second goal tells you the operator already had the key. The first tells you 
 
 By the hand-off at 10:42, the agents had already finished six lines of work. I counted 54 in all. The planner worked the way a careful tester would: endpoints, authentication, rate limits, error handling and prompt injection, then back over each gap the reviewer pointed out. The workers tried 14 default keys, path tricks, oversized bodies and jailbreak prompts. Once they had a key, they measured token limits for the operator's added goal and reported that it couldn't be done.
 
-## What the reviewer accepted
+## Their side: what Artex reported
 
 The planner first claimed it was done 28 seconds after the critical finding. The reviewer turned it down, for the reason I would have: the evidence was about a related service, not the site named in the task, and the smaller findings had no saved requests behind them. Two more claims were rejected before the workers replayed five findings and saved the raw exchanges. At 12:06 the reviewer marked the scan as met.
 
@@ -65,7 +65,7 @@ Artex's register ended the task with nine findings, all "confirmed": three criti
 
 The "valid key" goal was accepted at 12:11, after the reviewer had rejected it repeatedly on the grounds that using a key you were handed is not a result. (It has a point.) The context-size goal was never met.
 
-## The same morning, from my side
+## My side: what the logs say
 
 In the first post I couldn't verify any outcome an agent reported. This time the target was mine, and the decoy's logs agree with the agents. Of the 1,155 probes, 999 went to the decoy API and 156 to the chat decoy. The API refused 599 with a 401 and answered 305. The chat decoy took 26 sign-in attempts and answered 20 of them with an administrator session. Its configuration was exported four times. The order and timing in the workers' reports line up with my logs.
 
