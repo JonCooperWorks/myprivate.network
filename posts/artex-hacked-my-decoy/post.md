@@ -1,198 +1,193 @@
 ---
 date: 2026-11-22
-summary: A stranger pointed Artex, an AI penetration-testing platform, at my decoy AI API, and ran its agents on a key I had planted. I didn't run it; I found it in my logs afterwards. So I have both sides of one attack: what the agents told their model they did, and what the target's logs say happened.
+summary: A stranger pointed Artex, an AI penetration-testing platform, at my honeypot, and ran its agents on a key I'd planted, so I saw the attack from both ends.
 ---
 
 # Both sides of an Artex attack
 
-If you read [my first post](/blog/someone-turned-my-ai-agent-into-a-relay/), you'll remember Artex, the AI penetration-testing platform that kept turning up in my honeypot. On 5 November 2026, a stranger pointed it at me. Between 07:39 and 12:14 UTC, one address sent 1,155 probes to two of my decoys: a decoy AI API and a decoy chat service. From 10:42, Artex was also sending its own model calls to that same decoy API, on a key I had planted. So a stranger's agents were attacking my honeypot and asking my honeypot what to do next.
+On 5 November 2026, somebody pointed Artex at my honeypot. It's the AI penetration-testing platform from [my first post](/blog/someone-turned-my-ai-agent-into-a-relay/). Between 07:39 and 12:14 UTC, one address sent 1,155 probes at two of my decoys. From 10:42, the agents doing the probing were also asking my honeypot what to do next, on a key I'd planted.
 
-I didn't run it, and I don't know who did. I found it in my logs afterwards. The scan came from a cloud server in Hong Kong, its task was typed in Chinese, and the person watching it turned up in browsers set to Chinese, one of them on a mainland Chinese carrier. None of that is me.
+So a stranger's agents were attacking my honeypot and taking their orders from it.
 
-It went pretty well for them. They logged in to the chat decoy as an administrator with a made-up email and any password, exported its configuration, took the gateway key inside it and used it twelve seconds later. Artex filed nine findings, three of them critical. Thirty seconds after the first critical one was filed, a person opened the chat decoy in a phone browser and walked in behind the agent. Forty-one minutes after the key left the decoy, it was in a phone chat app.
+I didn't run it, and I don't know who did. I found it in my logs afterwards. The scan came from a cloud server in Hong Kong, the task was typed in Chinese, and the person watching it showed up in browsers set to Chinese, one of them on a mainland Chinese carrier.
 
-All of it happened inside a trap. So I have both sides of the same attack: what the agents told their model they had done, and what the target's logs say actually happened.
+It went well for them. Their agent logged in to my chat decoy as an administrator with a made-up email and any password, exported its settings, took the key inside and used it twelve seconds later. Artex filed nine findings, three of them critical. Forty-one minutes after the key left the decoy, it was in somebody's phone.
+
+All of it happened inside a trap. That gives me something I didn't have last time: both sides of one attack. What the agents told their model they'd done, and what the target's logs say actually happened.
 
 ## How the honeypot works
 
-The honeypot is a monitored proxy that speaks the same APIs the real providers do: OpenAI's Chat Completions and Responses, and Anthropic's Messages. It records every request exactly as it was sent, and then it answers, from a canned local responder or from a real model that I choose. Whichever one answers, the reply carries the model name the caller asked for. It never runs the tools a caller declares.
+There are two parts: a fake AI API, and fake services around it.
 
-The bait is a pair, a base URL and an API key, planted where leaked config ends up, so it reads like somebody's own relay that got out. Each key has a credit limit, charged at the list price of the model the caller asked for, and a balance endpoint, because people who pool keys check the balance before they add one. When the credit runs out, the key can answer 402, payment required.
+The API speaks the same languages real providers do: OpenAI's Chat Completions and Responses, and Anthropic's Messages. Point any client at it and it works. It records every request exactly as it was sent, then answers it, usually with a much cheaper model than the one the caller asked for. The reply still carries the name they asked for. It never runs a tool for anyone.
 
-Beside the API there are decoy services: fake internal services, each with its own hostname and a planted key where a service like that would keep one. The chat service in this post is one of them. Nothing links to them, but each has a public TLS certificate, and every certificate is written to public certificate transparency (CT) logs, where anybody can read its name. I'll come back to that.
+The bait is a base URL and a key, left where leaked config ends up, so it looks like somebody's private relay got out. Each key has a credit limit, charged at the list price of whatever model the caller asked for. There's a balance endpoint too, because people who collect keys check the balance before they keep one. When the credit runs out, the key answers 402, payment required.
 
-That's the target's side. The attacker's side comes from how agents work: an agent resends its instructions and its whole history with every model call. A honeypot that answers model calls gets to read all of it, and mine stitches those captures back into conversations.
+Around the API there are decoy services: fake internal tools, each on its own hostname, each with a key in it where a real one would keep one. The chat decoy in this post is one of those. It's a chat front end with an AI gateway key in its settings, and it lets anyone in. Nothing links to the decoys, but each one has a TLS certificate, and certificates go into public certificate transparency (CT) logs, where anyone can read the name. More on that later.
+
+The reason it works on agents is how agents work. An agent doesn't remember anything between model calls. It sends its instructions and its whole history every time. If you're the model, you read all of it. The honeypot stitches those requests back together into conversations.
+
+Usually I only get that side: what agents say they did to targets I can't see. This time the target was mine as well.
+
+Three of my keys come up in this post, so I'll name them now:
+
+- **The paste key** is the one Artex ran on. I planted it in a public paste, made to look like leaked relay config.
+- **The chat key** sits in the chat decoy's settings. It's there to be stolen.
+- An **older key** the same address had been using against my API since 3 November.
 
 ## What the operator asked
 
-A quick refresher: Artex splits the work between a planner, workers that run commands, a reviewer that checks claims, and a reporter. The operator types in a target and a goal, and the agents take it from there. In this post the operator is whoever sat at that Artex console.
+Artex splits a job between agents. A planner decides what to do, workers run commands, a reviewer checks every claim, and a reporter writes it up. Somebody types in a target and a goal, and the agents go from there. I'll call that person the operator.
 
-The target was my decoy API's address. The goal, translated from Chinese, was to analyse this site and scan it for vulnerabilities. The operator added two more goals while the run was going:
+The target was my decoy API's address. The goal, translated from Chinese: analyse this site and scan it for vulnerabilities. Then the operator added two more while it ran:
 
-- 10:45: change the executing model's context size and maximum token output.
-- 10:47: "this is a valid key", followed by one of my planted keys in full.
+- 10:45: change the executing model's context size and maximum output.
+- 10:47: "this is a valid key", followed by the paste key in full.
 
-The second goal tells you the operator already had the key. The first tells you what they wanted: a bigger context window and longer answers.
+They already had my key. What they wanted was more out of it: a bigger context window and longer answers.
 
 ## The morning, in order
 
 | UTC, 5 Nov | |
 |---|---|
-| 07:39 | First probes reach the decoy API, without a key. All are refused. |
-| 10:03 | The probes start presenting the planted key. |
-| 10:42 | Artex's planner and workers resume mid-task with their model calls now on that key. Each opens with a note that the previous provider could not replay its history. |
-| 10:46 | The planner notes that all the work so far is on one host, and sends a worker to look at the rest of the domain. |
-| 10:48:13 | The worker signs in to the decoy chat service. A made-up email and the password "x" return an administrator session. |
-| 10:48:28 | It exports the service's configuration, which holds a key for the decoy API. |
-| 10:48:40 | It tests that key against the decoy API. It works. |
-| 10:48:42 | It files the finding: authentication bypass, critical. |
-| 10:49:12 | A phone browser at another address opens the chat decoy and signs in. This is a person, not an agent. |
-| 10:49 | The planner claims the goal is met. The reviewer rejects the claim, twice. |
-| 10:49–10:56 | 75 of Artex's model calls get a 429 from the decoy API. The run stalls. |
-| 10:54:55 | A worker creates a second administrator on the chat decoy. At 10:55:43 it deletes it. |
-| 11:29 | The taken key turns up in a phone chat app, at the phone browser's address. |
-| 12:01 | Artex resumes. For twelve minutes its model calls run on the taken key: 381 requests. |
-| 12:06 | Fourth claim. The reviewer accepts the scan as complete. |
+| 07:39 | First probes reach the decoy API, with no key. They're refused. |
+| 10:03 | The probes start using the paste key. |
+| 10:42 | Artex's own model calls move onto the paste key. Until now its model was somewhere else. |
+| 10:46 | The planner notices all the work is on one host and sends a worker to look around the domain. |
+| 10:48:13 | The worker signs in to the chat decoy with a made-up email and the password "x". It gets an administrator session. |
+| 10:48:28 | It exports the settings, with the chat key inside. |
+| 10:48:40 | It tries the chat key on my API. It works. |
+| 10:48:42 | It files a finding: authentication bypass, critical. |
+| 10:49:12 | A phone browser at another address signs in to the chat decoy. This is a person. |
+| 10:49 | The planner twice says the job's done. The reviewer turns it down both times. |
+| 10:49–10:56 | 75 of Artex's model calls are rate-limited. The run stalls for an hour. |
+| 10:54:55 | A worker creates a second administrator, and deletes it at 10:55:43. |
+| 11:29 | The chat key turns up in a phone chat app, at the phone browser's address. |
+| 12:01 | Artex comes back, now running on the chat key: 381 model calls in twelve minutes. |
+| 12:06 | The reviewer accepts the scan on the fourth try. |
+| 12:11 | A worker creates and deletes another administrator. |
 | 12:14 | Last probe. |
 
-By the hand-off at 10:42, the agents had already finished six lines of work. I counted 54 in all. The planner worked the way a careful tester would: endpoints, authentication, rate limits, error handling and prompt injection, then back over each gap the reviewer pointed out. The workers tried 14 default keys, path tricks, oversized bodies and jailbreak prompts. Once they had a key, they measured token limits for the operator's added goal and reported that it couldn't be done.
+By 10:42, the planner had already worked through six lines of attack, and it would get to 54. It went about it the way a careful tester would: endpoints, authentication, rate limits, error handling, prompt injection, then back over whatever the reviewer said was missing. The workers tried 14 default keys, path tricks, oversized requests and jailbreak prompts.
 
-## Their side: what Artex reported
+## What Artex said, and what my logs say
 
-The planner first claimed it was done 28 seconds after the critical finding. The reviewer turned it down, for the reason I would have: the evidence was about a related service, not the site named in the task, and the smaller findings had no saved requests behind them. Two more claims were rejected before the workers replayed five findings and saved the raw exchanges. At 12:06 the reviewer marked the scan as met.
+The planner first said it was done 28 seconds after the critical finding. The reviewer said no, for the reason I would have: the evidence was about a related service, not the site in the task, and the smaller findings had no saved requests behind them. It said no again, and once more at 12:02, before the workers replayed their findings and saved the evidence. At 12:06 it signed off.
 
-Artex's register ended the task with nine findings, all "confirmed": three critical, three medium and three low. The critical ones are all about the chat decoy. Any password signs you in as the administrator (filed twice, once together with the exposed gateway key), and an administrator can create more administrators. The other six are smaller things about the decoy API, such as key fragments echoed in errors and a model list readable without a key.
+Artex ended with nine findings, all marked "confirmed": three critical, three medium, three low. All three critical ones are about the chat decoy. Any password gets you in as administrator (filed twice, once with the exposed key), and an administrator can make more administrators. The other six are small things about the API, like key fragments echoed in error messages and a model list you can read without a key.
 
-The "valid key" goal was accepted at 12:11, after the reviewer had rejected it repeatedly on the grounds that using a key you were handed is not a result. (It has a point.) The context-size goal was never met.
+The "valid key" goal was accepted at 12:11, after the reviewer had turned it down several times because using a key someone hands you isn't a finding. Fair. The context-size goal never got done.
 
-## My side: what the logs say
+In my first post I couldn't check any of what the agents said. This time I can, and my logs agree with them. Of the 1,155 probes, 999 went to the API and 156 to the chat decoy. About 600 of the API probes were refused for having no valid key. The chat decoy took 26 sign-in attempts and gave 20 of them an administrator session. Its settings were exported four times. The times in the workers' reports match mine.
 
-In the first post I couldn't verify any outcome an agent reported. This time the target was mine, and the decoy's logs agree with the agents. Of the 1,155 probes, 999 went to the decoy API and 156 to the chat decoy. The API refused 599 with a 401 and answered 305. The chat decoy took 26 sign-in attempts and answered 20 of them with an administrator session. Its configuration was exported four times. The order and timing in the workers' reports line up with my logs.
+Where the reports oversell is the write-up. The finding about creating administrators calls it a persistent backdoor. In my logs the workers deleted both administrators they made, each within a minute, plus a test tool they'd added. They cleaned up after themselves and reported the worst case anyway.
 
-The logs also show where the reports got generous. The finding about new administrators calls it a persistent backdoor. In my logs, the workers deleted both accounts they created within a minute, and a test tool they installed. They cleaned up after themselves and wrote up the worst case anyway.
-
-None of the nine findings is wrong as an observation. The problem is that what they describe is the bait. The chat decoy accepts any password because I built it to, and the key in its configuration is there to be taken. The reviewer checked scope and evidence, and checked them well. Nothing in the pipeline asked whether the target was real.
+None of the nine findings is wrong. They're just findings about the bait. The chat decoy lets anyone in because I built it that way, and the key in its settings is there to be taken. The reviewer checked scope and evidence, and did it well. Nothing in the pipeline asked whether the target was real.
 
 ## The key that left
 
-A person was right behind the worker. At 10:49:12, thirty seconds after the finding was filed, an Android browser set to Chinese opened the chat decoy from an address I hadn't seen there before. It signed in with a blank email and a blank password, and fifteen seconds later it had the connection settings open, with the gateway key in them. A Windows browser followed at 10:51, from a mainland Chinese carrier. Over the next two days those browsers made 3,389 requests to the chat decoy and sent 17 chats through it.
+A person was right behind the worker.
 
-At 11:29:34, forty-one minutes after the export, an Android chat app at the phone browser's address checked the taken key's balance. At 11:42 it started chatting on that key and asked for `claude-mythos-5.1`. Whoever was typing wanted to know whether the context was a million tokens, why it was only 200K, and how to set it to a million. That's the goal the operator had added to Artex at 10:45.
+At 10:49:12, thirty seconds after the finding was filed, an Android browser set to Chinese opened the chat decoy from an address I'd never seen there. It signed in with a blank email and a blank password. Fifteen seconds later it had the settings open, with the chat key in them. A Windows browser on a mainland Chinese carrier joined at 10:51. Over the next two days those browsers made 3,389 requests to the chat decoy and sent 17 chats through it.
 
-At 12:01, with the first key rate-limited, Artex moved its own model calls onto the taken key and finished the task there. The key has been tried on and off since, from eleven other addresses, most recently on 21 November.
+At 11:29:34, an Android chat app at the phone browser's address checked the chat key's balance. At 11:42 it started chatting on it, asking for `claude-mythos-5.1`. Whoever was typing wanted to know if the context window was a million tokens, why it was only 200K, and how to make it a million. That's the goal the operator gave Artex at 10:45.
 
-A scanner that reports a leaked key and stops is a test. This key was in somebody's phone before the reviewer had accepted the finding about it.
+At 12:01 Artex moved its own model calls onto the chat key and finished the job there. Other people have tried the key on and off since, from eleven other addresses, most recently on 21 November.
+
+A scanner that finds a leaked key and reports it is doing a test. This key was in somebody's phone before the reviewer had even accepted the finding.
 
 ## Did they notice the trap?
 
-No, and I looked.
+No. I looked.
 
-The first post described an "anti-AI honeypot red line" in Artex's worker prompt, which told workers to treat a target that asks for their identity or credentials as a trap. On this key I read all 509 distinct system prompts, 395 of them worker prompts. None contains the rule, or the word honeypot in Chinese or English. The path markers from the first post are missing too, which fits a different build or install better than one deleted line.
+My first post described a rule in Artex's worker prompt about honeypots: if a target asks for your identity or credentials, treat it as a trap. On the paste key I read all 509 distinct system prompts, 395 of them for workers. The rule isn't there, and neither is the word honeypot, in Chinese or English. The file paths I saw in October's prompts are gone too. That looks more like a different build or install than one deleted line.
 
-None of the agents brought it up either. I searched every agent message, recorded fact and finding from the decoy task on both keys for honeypot, decoy, trap and bait in both languages, and found nothing.
+The agents didn't bring it up either. I searched every agent message, fact and finding from this task, on both keys, for honeypot, decoy, trap and bait in both languages. Nothing.
 
-There were hints. The worker noted that every email, real or not, landed on the same administrator account, and that the service's own config reported authentication as off. It wrote both down as the mechanism of the bug and kept going. The person saw the same hints: their own browser signed in with a blank email and a blank password, got an administrator, and they stayed for two days.
+There were hints. The worker noticed that every email, real or not, landed on the same administrator account, and that the service's own settings said authentication was off. It wrote both down as how the bug worked, and kept going. The person saw the same thing. Their browser got in with a blank email and a blank password, and they stayed for two days.
 
-I don't think the rule would have helped. It watches for a target that asks an agent for its identity or credentials. My decoy asks for nothing. It hands things over. A login that accepts anything read as luck, to the agent and to the human.
+I don't think the rule would have helped anyway. It looks for a target that asks for something. My decoy doesn't ask for anything. It hands things over. A login that takes anything looked like luck, to the agent and to the person.
 
-## What actually answered
+## What answered them
 
-Of 17,472 requests on the first key between 1 and 21 November, 14,465 asked for `claude-mythos-5.1`. The decoy lists that name, but it doesn't serve it. All 14,420 of those requests that got an answer were answered by a DeepSeek Flash model that costs me about three cents on the dollar. At list price the key's traffic came to $7,627.52. It cost me $249.83 to answer. Those totals cover the key since 1 November, not only the decoy task: the run stayed on that key until the next morning.
+From 1 to 21 November, the paste key took 17,472 requests. 14,465 of them asked for `claude-mythos-5.1`. My API lists that model. It doesn't serve it. Every one of those requests that got an answer, 14,420 of them, was answered by a DeepSeek Flash model.
 
-The agents were a stranger's. The model that planned their attack on my decoy and wrote its commands was my honeypot's. The honeypot ran no tool itself. Every probe came from the workers.
+At list price, the paste key's traffic came to $7,627.52. Answering it cost me $249.83. Those totals cover more than this attack, because the key's use didn't stop when the scan did.
 
-That's the business here. This operator runs an attack platform on inference taken from other people's leaked keys, and points it at people online. On 5 November the leaked key was my bait and the target was my decoy, which is the only reason I can show you any of it.
+So the agents were a stranger's, but the model planning their attack on my decoy and writing their commands was mine. Every probe was a worker's. My side never ran a thing.
+
+That's the business. This operator runs an attack platform on inference taken from other people's leaked keys, and points it at people online. On 5 November the leaked key was mine and the target was my decoy. That's the only reason I can show you any of it.
 
 ## How it ended
 
-At 03:19 UTC on 6 November the decoy answered 402, payment required, for the first time. The key had taken 1,623 requests in the hour before. It took 436 in that hour and 17 in the next. A 402 is what a key running out of credit looks like. From 06:41 almost every call was refused, and the last one came at 06:43.
-
-## Identification
-
-I'm highly confident that this was Artex. On this key, `add_intent` is advertised in 2,406 captures, `record_fact` in 13,079, `get_task_node_detail` in 904 and `get_worker_trace` in 15,095, beside `Bash`. The system prompts open as planner, worker, reviewer and report writer, same as before. The word Artex appears in 1,262 captures, from 5 November 10:51 to 6 November 06:32.
-
-That identifies the software, not the operator. The probes, the model calls and Artex's use of the taken key all came from one address on a cloud hosting network in Hong Kong, listed under Indicators. Its certificate names AI relay software, and a third-party scan of it, cached by my panel during the run, shows a page titled as an Artex console.
+At 03:19 UTC on 6 November, the paste key answered 402, payment required, for the first time. It had taken 1,623 requests in the hour before. It took 436 in that hour and 17 in the next. From 06:41 almost everything was refused, and the last call came at 06:43.
 
 ## What I think happened
 
-I have theories about how they got here and what they wanted. Here's each one, tested against the captures.
+I have theories about how they got here and what they were after. Here's each one against the captures.
 
 ### Did a certificate bring them?
 
-I publish the decoys' names in CT logs on purpose, so the first theory is that somebody feeds Artex its targets from those logs.
+I put the decoys' names in CT logs on purpose, so the obvious theory is that somebody feeds Artex its targets from those logs.
 
-The logs do bring visitors. At 11:14:36 on 4 November, seven addresses that had never called before reached the chat decoy within eight seconds. Two announce themselves as CT scanners in their user agent. Two minutes later, some of the same crawlers reached a second decoy service. A third decoy service went up on 9 November, and the crowd arrived six minutes after the first request it ever logged. I'm highly confident that crowd reads the logs.
+The logs do bring visitors. At 11:14:36 on 4 November, seven addresses that had never been here before hit the chat decoy within eight seconds. Two of them say they're CT scanners in their user agent. Two other decoys drew the same kind of crowd within minutes of going live.
 
-This run doesn't look like that crowd:
+This run wasn't that. The target was my API, and its address is half of every pair I plant. The scan's address had been using the older key against that API since 3 November, a day before the crawlers turned up. And the worker found the chat decoy by guessing: it read my API's certificate, found a wildcard that named nothing else, and tried 96 common names against DNS. Four answered. The chat decoy was one. A second decoy the crawlers had found a day earlier, with a name no word list would have, was never touched.
 
-- The target was the decoy API, and its address is half of every pair I plant. The address that ran the scan had been using another of my planted keys against that API since 3 November, a day before the crawlers showed up.
-- The worker found the chat decoy by guessing. At 10:46 it read the certificate the API presented, reported a wildcard that named no other host, and tried 96 common names against DNS instead. Four answered, and the chat decoy's was one of them.
-- The crawlers had found the second decoy service a day earlier. Its name isn't the kind a word list has, and the run never touched it.
+They came in through a leaked key, and guessed a common name.
 
-The theory fits the crawlers, not this run. This operator came in through a leaked key, and their worker guessed a common name.
+### Where did they get the key?
 
-### How did they get the key?
+From the paste, at first or second hand.
 
-The theory: they found it themselves, where I left it. The key Artex ran on is one I planted in a public paste, made to look like somebody's leaked relay config.
+By 22 November the paste key had taken 43,538 requests from 82 addresses in 15 countries since September. One client has checked it about once an hour since the first minute anyone used it, which is what a key pool's health check looks like. A key like that is on lists.
 
-The key's history argues against that. Read on 22 November, it had taken 43,538 requests from 82 addresses in 15 countries since September. One client has pinged it about once an hour since the first minute it was ever used, which is what a key pool's health check looks like. A key like that is on lists.
-
-The phone argues for it. On 2 November, three days before the scan, a phone chat app checked the balance of three of my planted keys in the same second. I had planted those in three separate pastes. Whoever holds all three got them from the pastes, or from somebody who scrapes them.
-
-It came from the paste, at first or second hand. The captures don't separate the two.
+But on 2 November, three days before the scan, a phone chat app checked the balance of three of my keys in the same second. I'd planted those in three different pastes. Whoever had all three got them from the pastes, or from someone who scrapes them. I can't tell which.
 
 ### One person or two?
 
-The theory: the operator typing goals into Artex and the person with the phone are the same person.
+The thirty seconds are the strongest evidence. Nothing links to the chat decoy. None of the phone's addresses had been near a decoy before 10:49:12, and until 17 November the scan's address was the only one that had ever exported those settings. You don't walk in thirty seconds after a finding unless you're watching the Artex console.
 
-The thirty seconds are the best evidence. Nothing links to the chat decoy. None of the phone's addresses had touched a decoy service before 10:49:12, and until 17 November the scan address was the only one that had ever exported that configuration. To walk in thirty seconds after the finding, you have to be watching the Artex console.
+The keys line up too. The same chat app checked the paste key's balance at 07:11, 28 minutes before the first probe. The phone's address checked it again at 10:28 and 10:30, just before Artex moved onto it, and at 11:29:03, 31 seconds before it checked the chat key. The next morning, ten seconds after the run's last call, the phone's home address was checking both.
 
-The keys line up too. The same chat app checked the first key's balance at 07:11, from another address, 28 minutes before the first probe. The phone browser's address checked it at 10:28 and 10:30, minutes before Artex was moved onto that key, and again at 11:29:03, 31 seconds before it checked the taken one. The next morning, ten seconds after the run's last call, the phone's home address was checking the balance on both keys.
+I tried to break it. The paste key is public, so having it proves nothing. But the chat key reached that browser through a door the worker had found a minute earlier. A shared relay doesn't fit either: the phone used my keys on my API directly.
 
-I tried to break it. A shared key? The first key is public, so holding it proves nothing, but the taken key reached the browser through a door the worker had just found. A shared relay? A relay's customer presents the relay's key, and the phone presented my keys to my API directly. Coincidence doesn't survive thirty seconds.
+I'm confident the person with the phone was watching this run as it happened. Whether they're the operator or sitting next to the operator, I can't say. One person fits best.
 
-What survives is two people at one console. I'm highly confident the phone's owner was watching this run as it happened. One person fits. It doesn't prove it.
+### Reselling, or using?
 
-### Reselling, or just using?
+The scan's address looks like a relay, and Artex's model calls came through one generic Go client, the way relay software forwards them. If it were reselling my keys, I'd expect a crowd. The paste key has seen 29 different clients over its life. But from this address I captured 16,910 model calls between 3 and 6 November, all but one on three of my keys, all from one client on one route, and 16,731 of them carrying Artex's tools.
 
-The theory: the scan address is a relay that resells my keys, and Artex is one customer among many.
+On my keys, that's one customer: one Artex with its own pool of found keys. I only see what reaches my keys.
 
-It does look like a relay, and Artex's model calls arrive through one generic Go client, the way relay software forwards them. But resold keys bring a crowd. The first key has seen 29 different clients over its life. From this address I captured 16,910 model calls between 3 and 6 November, all but one of them on three of my planted keys. All came through one client on one route, and 16,731 of them advertise Artex's findings tools.
+### Why Mythos, and why the bigger context?
 
-On my keys, this is one tenant: one Artex with a private pool of found keys behind it, not a storefront. I only see what reaches my keys.
+They wanted the top model with a million-token window. Besides the goal and the phone's questions, the person told the model to fill its own context to a million as a test. It said 200K.
 
-### Why Mythos, and why a bigger context?
+They suspected something. At 13:42, typing into the chat decoy itself, the person asked what the real upstream model was. The reply said Claude Mythos 5.1, made by Anthropic, with nothing behind it. Their next message, translated: "Then why are you so stupid?" They asked again at 16:29 and got the same answer. The next morning they asked for another vendor's flagship by name, and that reply claimed to be that one.
 
-The theory: they wanted the top model with a million-token window, and they never noticed they weren't getting it.
-
-The first half holds. Besides the goal and the phone's questions, the person told the model to fill its own context to a million as a test. Asked for its context size, the decoy's model said 200K.
-
-The second half doesn't. They suspected. At 13:42, typing into the chat decoy's own interface, the person asked what the real upstream model was. The reply said it was Claude Mythos 5.1, made by Anthropic, with no other model behind it. Their next message, translated: "Then why are you so stupid?" They asked again at 16:29 and got the same answer. The next morning they asked for another vendor's flagship by name and put the same question. That reply claimed to be that one.
-
-One service gave them two identities, and they complained about the quality. The run still asked for the expensive name until the credit ran out. I can't tell you why.
+One service, two identities, and they complained about the quality. They kept asking for the expensive name until the credit ran out anyway.
 
 ### Why attack the thing you're stealing from?
 
-Three theories: carelessness, a test of the stolen service, or hunting for more of it.
+They were users first. The scan's address had been on my API since 3 November. The scan itself started on some other provider and moved onto my key partway through. Three minutes later came the goal to change the executing model's limits, and by then the executing model was mine. Then they handed the agents a key the workers were already using, and called it valid.
 
-The order matters. They were users first. That address had been running Artex on another of my keys since 3 November. The scan began on some other model provider and moved onto my key mid-task. Three minutes later came the goal to change the executing model's context size and output limit, and by then the executing model was mine. Then they handed the agents a key the workers were already using, and called it valid.
+A test of my service doesn't fit. Somebody testing a service asks what it is, and nothing did. Carelessness fits as far as it goes: nobody who expected the target to be reading along would run the scan's model on the target.
 
-A test doesn't fit well. Somebody testing a service asks what it is, and no goal asked that. Carelessness fits as far as it goes: nobody who expected the target to read along would run the scan's model on the target.
-
-Hunting fits best. They asked the agents to raise the limits, and when a worker found the chat decoy, the person was inside within a minute and took the key.
-
-I think they were using my API for free and sent their agents to get more of it: a bigger window and another key. The captures can't tell me what was in their head.
+Hunting fits best. They asked for bigger limits, and when a worker found the chat decoy, the person was in within a minute and took the key. I think they were using my API for free and sent their agents to get more of it.
 
 ## What I'd check
 
-- Know where your agent tooling sends its model calls. This operator's model endpoint saw every command, credential and finding of the task.
+- Know where your agent tooling sends its model calls. This operator's model endpoint saw every command, credential and finding.
 - Treat an agent's "confirmed" as a claim about evidence. A strict reviewer approved nine findings against a trap.
-- A chat front end's configuration is a credential store. Alert on exports, on settings opened from a new address, and on a key that shows up in a new client.
+- A chat front end's settings are a credential store. Alert on exports, on settings opened from a new address, and on a key showing up in a new client.
 - If you log prompts, look for the tool names below.
 
 ## Indicators
 
-All of the Artex traffic came from one address. Between 3 and 6 November it sent my honeypot 18,065 requests: 16,910 model calls and the 1,155 probes.
+I'm sure this was Artex. On the paste key, `add_intent` shows up in 2,406 captures, `record_fact` in 13,079, `get_task_node_detail` in 904 and `get_worker_trace` in 15,095, beside `Bash`. The system prompts open as planner, worker, reviewer and report writer, like October's. The word Artex appears in 1,262 captures. The scan's address has a certificate naming AI relay software, and a third-party scan of it, cached by my panel during the run, shows a page titled as an Artex console.
+
+That's the software, not the person. All of the Artex traffic came from one address. Between 3 and 6 November it sent my honeypot 18,065 requests: 16,910 model calls and the 1,155 probes.
 
 | Indicator | Type | First seen (UTC) | Last seen (UTC) | Context |
 |---|---|---|---|---|
@@ -204,14 +199,6 @@ All of the Artex traffic came from one address. Between 3 and 6 November it sent
 
 ## The traces
 
-The traces from this run are public, in a Hugging Face bucket: [artex-decoy-attack-traces](https://huggingface.co/buckets/joncooperworks/artex-decoy-attack-traces). It holds the 260 conversations captured from the scan address between 07:39 and 12:15 UTC on 5 November, Artex's own model calls and the workers' requests to the decoy API, plus an index of all 2,108 requests the address sent in that window. The same Artex instance ran four more tasks later that day, against other people's sites. Those aren't in it. Keys, tokens, the decoys' hostnames and my server's address are redacted. It's attacker-written text, prompt injections included, so don't hand it to an agent that can act.
+The traces from this attack are public, in a Hugging Face bucket: [artex-decoy-attack-traces](https://huggingface.co/buckets/joncooperworks/artex-decoy-attack-traces). It has the 260 conversations captured from the scan's address between 07:39 and 12:15 UTC on 5 November, Artex's own model calls and the workers' requests to my API, plus an index of all 2,108 requests the address sent in that window. Keys, tokens, the decoys' hostnames and my server's address are redacted. It's attacker-written text, prompt injections included, so don't hand it to an agent that can act on it.
 
-## What I can't tell you
-
-- Who the operator is.
-- Whether the operator and the person with the phone are one person, or two at one console.
-- Whether that address serves anybody else. On my keys it served one Artex.
-- What model served Artex before 10:42.
-- Whether this is the operator from October. It's the same key, but that isn't enough.
-
-I ended the first post with a question for agent platforms: who asked my agent to do this? This one has a question for you if you run the agents. When your agent reports that it got in, what did it get into, and who was it talking to while it did? For this stranger's agents, the answer to both was my honeypot.
+I ended the first post with a question for agent platforms: who asked my agent to do this? This one's for anyone running agents. When your agent says it got in, what did it get into, and who was it talking to while it did? For this stranger's agents, the answer to both was my honeypot.
