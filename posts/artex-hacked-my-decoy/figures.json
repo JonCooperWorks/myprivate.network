@@ -8,7 +8,7 @@
   },
   {
     "file": "decoy-timeline.webp",
-    "after": "By 10:42, the planner",
+    "after": "By 10:42 the planner",
     "alt": "A timeline for 5 November 2026 in UTC, of a stranger's Artex run against my decoys. 07:39 first probes reach the decoy AI API with no key. 10:03 the probes start using a planted key. 10:42 Artex moves its own model calls onto the same key. 10:48 a worker signs in to a second decoy as admin, exports its configuration and twelve seconds later tests the key it found. 10:49 the planner claims the goal and the reviewer rejects it twice. 10:56 rate limit, the run stalls for an hour. 11:29 the taken key turns up in a phone chat app, 41 minutes after it left the decoy. 12:01 Artex resumes on the taken key. 12:06 the reviewer accepts the scan on the fourth claim. 12:14 last probe.",
     "caption": "The decoy task, from the honeypot's logs and the agents' own requests. The agents were a stranger's; the logs are mine.",
     "wide": true
